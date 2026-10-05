@@ -1,11 +1,18 @@
 {
   "name": "claude-chat-picker",
-  "owner": { "name": "FoCDoT" },
+  "owner": {
+    "name": "FoCDoT",
+    "url": "https://github.com/FoCDoT"
+  },
   "plugins": [
     {
       "name": "chat-name-nudge",
       "source": "./chat-name-nudge",
-      "description": "Suggests a name for unnamed chats above the prompt; you press Enter on /rename. Never renames by itself."
+      "description": "Suggests a name for unnamed chats above the prompt; you press Enter on /rename. Never renames by itself.",
+      "author": {
+        "name": "FoCDoT"
+      }
     }
-  ]
+  ],
+  "description": "Tools for finding and naming Claude Code chats"
 }
