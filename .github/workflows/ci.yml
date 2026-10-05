@@ -14,11 +14,19 @@ jobs:
       - run: ruff format --check .
 
   test:
-    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        include:
+          - os: macos-latest
+            python: "3.13"
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - name: Install fzf (used by the end-to-end tests)
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install fzf; else sudo apt-get install -y fzf; fi
       - run: uv run --python ${{ matrix.python }} --with pytest --with-editable . pytest -q

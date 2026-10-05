@@ -31,6 +31,20 @@ class Context:
             return []
         return transcripts.load_sessions(self.project)
 
+    @property
+    def permission_mode(self) -> str:
+        return "skipping permissions" if self.skip_permissions else "with permission prompts"
+
+    @property
+    def permission_hint(self) -> str:
+        """One header line saying how claude will run and how to change it."""
+        if self.skip_permissions:
+            return (
+                "Runs claude with --dangerously-skip-permissions"
+                " · use waymark --no-perms to keep prompts"
+            )
+        return "Permission prompts on (--no-perms) · run waymark without it to skip them"
+
     def claude_command(self, *args: str) -> list[str]:
         flags = ["--dangerously-skip-permissions"] if self.skip_permissions else []
         return ["claude", *flags, *args]
@@ -45,10 +59,10 @@ def cmd_menu(ctx: Context) -> int:
         unnamed = sum(1 for s in sessions if not s.title)
         choice = picker.pick(
             [
-                ("resume", "Resume a session"),
+                ("resume", f"Resume a session  {DIM}{ctx.permission_mode}{RESET}"),
                 ("rename", f"Rename sessions  {DIM}{unnamed} of {len(sessions)} unnamed{RESET}"),
             ],
-            header=str(ctx.folder),
+            header=f"{ctx.folder}\n{ctx.permission_hint}",
         )
         if choice is None:
             return 0
@@ -118,11 +132,11 @@ def cmd_preview(project: str, session_id: str) -> int:
 
 def _browse(ctx: Context, sessions: list[Session], *, rename_mode: bool) -> None:
     """List sessions until cancelled. Renaming returns to the list; resuming replaces us."""
-    suffix = " (skipping permissions)" if ctx.skip_permissions else ""
     if rename_mode:
-        header = f"enter rename · ctrl-o resume{suffix} · esc back"
+        keys = "enter rename · ctrl-o resume · esc back"
     else:
-        header = f"enter resume{suffix} · ctrl-r rename · esc back"
+        keys = "enter resume · ctrl-r rename · esc back"
+    header = f"{keys}\n{ctx.permission_hint}"
 
     while True:
         ordered = (
@@ -271,6 +285,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="keep permission prompts (by default claude runs with "
         "--dangerously-skip-permissions)",
     )  # fmt: skip
+    # Accepted for compatibility with 0.3.0, where skipping was opt-in; it is now the default.
+    common.add_argument(
+        "--skip-permissions", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS
+    )
 
     parser = argparse.ArgumentParser(
         prog="waymark",

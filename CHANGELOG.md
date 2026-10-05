@@ -1,8 +1,14 @@
 # Changelog
 
+## 0.3.2
+
+- The menu and session lists say whether permission prompts are skipped and how to change it.
+- `--skip-permissions` from 0.3.0 is accepted again (it is the default) so existing aliases keep working.
+- End-to-end tests drive the real fzf in a pseudo-terminal; CI installs fzf and also runs on macOS.
+
 ## 0.3.1
 
-- Skipping permission prompts is the default again; `--no-perms` keeps them. `--skip-permissions` is removed.
+- Skipping permission prompts is the default again; `--no-perms` keeps them.
 
 ## 0.3.0
 
