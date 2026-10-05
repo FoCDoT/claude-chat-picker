@@ -34,6 +34,20 @@ The mod, from inside Claude Code:
 /plugin install chat-name-nudge@claude-chat-picker
 ```
 
+## Uninstall
+
+```sh
+rm ~/.local/bin/claude-chat-picker
+rm -rf ~/.cache/claude-chat-picker ~/.claude/chat-naming-stats.jsonl   # optional: cache and stats
+```
+
+```
+/plugin uninstall chat-name-nudge@claude-chat-picker
+/plugin marketplace remove claude-chat-picker
+```
+
+Names you already gave chats stay; they are ordinary `/rename` names.
+
 ## Picker usage
 
 ```
