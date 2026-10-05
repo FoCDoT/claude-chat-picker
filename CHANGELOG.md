@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Fix: the picker was invisible with fzf older than 0.53 (such as Ubuntu 24.04's), which draws its interface on stderr; waymark no longer captures stderr.
+
 ## 0.3.2
 
 - The menu and session lists say whether permission prompts are skipped and how to change it.

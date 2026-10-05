@@ -43,7 +43,8 @@ def pick(
         command += ["--expect", ",".join(expect)]
 
     lines = "\n".join(f"{value}\t{label}" for value, label in rows)
-    result = subprocess.run(command, input=lines, capture_output=True, text=True, check=False)
+    # Capture stdout only: fzf before 0.53 (e.g. Ubuntu 24.04's) draws its interface on stderr.
+    result = subprocess.run(command, input=lines, stdout=subprocess.PIPE, text=True, check=False)
     if result.returncode != 0:
         return None
 

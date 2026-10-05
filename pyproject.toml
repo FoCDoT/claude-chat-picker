@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "waymark"
-version = "0.3.2"
+version = "0.3.3"
 description = "Find, resume and name Claude Code sessions from the terminal."
 readme = "README.md"
 license = "MIT"
