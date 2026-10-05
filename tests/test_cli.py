@@ -12,7 +12,7 @@ def test_version(capsys: pytest.CaptureFixture[str]) -> None:
     assert capsys.readouterr().out.startswith("waymark ")
 
 
-def test_skip_permissions_is_opt_in(tmp_path) -> None:
+def test_context_permission_flag(tmp_path) -> None:
     assert cli.Context(tmp_path, skip_permissions=False).claude_command("--resume", "x") == [
         "claude",
         "--resume",
@@ -25,9 +25,17 @@ def test_skip_permissions_is_opt_in(tmp_path) -> None:
 
 def test_global_options_work_before_and_after_the_command() -> None:
     parser = cli.build_parser()
-    assert parser.parse_args(["--skip-permissions", "resume"]).skip_permissions
-    assert parser.parse_args(["resume", "--skip-permissions"]).skip_permissions
-    assert not hasattr(parser.parse_args(["resume"]), "skip_permissions")
+    assert parser.parse_args(["--no-perms", "resume"]).no_perms
+    assert parser.parse_args(["resume", "--no-perms"]).no_perms
+    assert not hasattr(parser.parse_args(["resume"]), "no_perms")
+
+
+def test_permissions_are_skipped_unless_no_perms(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = []
+    monkeypatch.setattr(cli, "cmd_new", lambda ctx: seen.append(ctx.skip_permissions) or 0)
+    cli.main(["new"])
+    cli.main(["new", "--no-perms"])
+    assert seen == [True, False]
 
 
 def test_preview_rejects_paths_outside_projects(tmp_path) -> None:

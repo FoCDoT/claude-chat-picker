@@ -267,8 +267,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="folder whose sessions to use (default: current folder)",
     )  # fmt: skip
     common.add_argument(
-        "--skip-permissions", action="store_true", default=argparse.SUPPRESS,
-        help="pass --dangerously-skip-permissions to claude when resuming or starting",
+        "--no-perms", action="store_true", default=argparse.SUPPRESS,
+        help="keep permission prompts (by default claude runs with "
+        "--dangerously-skip-permissions)",
     )  # fmt: skip
 
     parser = argparse.ArgumentParser(
@@ -301,7 +302,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return cmd_stats()
 
     folder = Path(getattr(args, "dir", None) or os.getcwd()).resolve()
-    ctx = Context(folder, skip_permissions=getattr(args, "skip_permissions", False))
+    ctx = Context(folder, skip_permissions=not getattr(args, "no_perms", False))
     try:
         if args.command == "resume":
             return cmd_resume(ctx)

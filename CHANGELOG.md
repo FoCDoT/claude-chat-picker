@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Skipping permission prompts is the default again; `--no-perms` keeps them. `--skip-permissions` is removed.
+
 ## 0.3.0
 
 Renamed from `claude-chat-picker` to **waymark**.

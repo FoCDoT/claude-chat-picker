@@ -45,7 +45,7 @@ waymark stats                suggestion usage and recent renames
 | Option | Effect |
 |---|---|
 | `-C`, `--dir PATH` | Use the sessions of another folder. |
-| `--skip-permissions` | Pass `--dangerously-skip-permissions` to `claude` when resuming or starting a session. |
+| `--no-perms` | Keep permission prompts. Without it, `claude` runs with `--dangerously-skip-permissions`. |
 
 In a session list, `enter` performs the list's action, `ctrl-r` renames, `ctrl-o` resumes and `esc` goes back. When you rename, you can:
 
@@ -56,11 +56,7 @@ In a session list, `enter` performs the list's action, `ctrl-r` renames, `ctrl-o
 
 After a rename you return to the list, so you can title several sessions in a row.
 
-If you always run with `--skip-permissions`, add an alias:
-
-```sh
-alias waymark='waymark --skip-permissions'
-```
+> **Note:** waymark starts and resumes sessions with `--dangerously-skip-permissions` by default, so Claude can run tools without asking. Pass `--no-perms` to keep the prompts, or add `alias waymark='waymark --no-perms'` to make that your default.
 
 ### The mod
 
