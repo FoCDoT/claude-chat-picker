@@ -1,0 +1,8 @@
+{
+  "_about": "Naming conventions for Claude chats. Read by claude-chat-picker and the chat-name-nudge mod. 'folders' keys are path prefixes; the longest match wins and its text is added to 'default'.",
+  "default": "3-7 words, lowercase except proper nouns, no trailing period, no quotes. Say WHAT the chat is about (the deliverable or problem), not how it went. Prefer concrete nouns: tool, product, client or file names. No generic words like 'chat', 'session', 'help with', 'discussion'.",
+  "folders": {
+    "/Users/you/scratch": "A general scratch folder with many unrelated projects. Lead with the project or tool the chat is about, then the specific task.",
+    "/Users/you/code/my-app": "Work on my-app. Lead with the area ('api', 'ui', 'billing'), then the specific task."
+  }
+}

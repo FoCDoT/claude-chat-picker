@@ -1,0 +1,11 @@
+{
+  "name": "claude-chat-picker",
+  "owner": { "name": "FoCDoT" },
+  "plugins": [
+    {
+      "name": "chat-name-nudge",
+      "source": "./chat-name-nudge",
+      "description": "Suggests a name for unnamed chats above the prompt; you press Enter on /rename. Never renames by itself."
+    }
+  ]
+}

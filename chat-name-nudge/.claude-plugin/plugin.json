@@ -1,0 +1,1 @@
+{ "name": "chat-name-nudge", "version": "0.2.0", "description": "Nudges you to /rename unnamed chats with a Sonnet-suggested name; never renames by itself", "types": "./types/index.d.ts" }
