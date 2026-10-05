@@ -34,10 +34,10 @@ To install the mod, run these inside Claude Code:
 ## Usage
 
 ```
-waymark                      menu: resume or rename
+waymark                      menu: resume, rename or start a new session
 waymark resume               pick a session to resume
 waymark rename               pick sessions to rename, untitled first
-waymark new                  start a new session in this folder
+waymark new                  start a new session in this folder (also: waymark --new)
 waymark suggest SESSION_ID   print suggested titles without changing anything
 waymark stats                suggestion usage and recent renames
 ```

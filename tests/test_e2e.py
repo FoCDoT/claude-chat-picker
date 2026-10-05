@@ -168,11 +168,37 @@ def test_legacy_skip_permissions_flag_is_accepted(workspace: dict) -> None:
 
 @pytest.mark.parametrize(
     ("args", "expected"),
-    [(("new",), ["--dangerously-skip-permissions"]), (("new", "--no-perms"), [])],
+    [
+        (("new",), ["--dangerously-skip-permissions"]),
+        (("new", "--no-perms"), []),
+        (("--new",), ["--dangerously-skip-permissions"]),
+        (("--no-perms", "--new"), []),
+    ],
 )
 def test_new_session(workspace: dict, args: tuple[str, ...], expected: list[str]) -> None:
     assert run(workspace, *args).wait() == 0
     assert launched(workspace) == [str(workspace["folder"]), *expected]
+
+
+def test_menu_starts_a_new_session(workspace: dict) -> None:
+    term = run(workspace)
+    term.expect("New session")
+    term.send("New session")  # filter the menu down to this row
+    term.expect("1/3")
+    term.send(ENTER)
+    assert term.wait() == 0
+    assert launched(workspace) == [str(workspace["folder"]), "--dangerously-skip-permissions"]
+
+
+def test_menu_in_a_folder_without_sessions_offers_a_new_one(workspace: dict) -> None:
+    empty = workspace["folder"].parent / "empty"
+    empty.mkdir()
+    term = Terminal([sys.executable, "-m", "waymark"], workspace["env"], empty)
+    term.expect("New session")
+    term.expect("1/1")
+    term.send(ENTER)
+    assert term.wait() == 0
+    assert launched(workspace) == [str(empty), "--dangerously-skip-permissions"]
 
 
 def test_escape_from_menu_exits_cleanly(workspace: dict) -> None:

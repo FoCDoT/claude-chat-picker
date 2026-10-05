@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4
+
+- The menu has a **New session** row, and also opens in a folder with no sessions yet.
+- `waymark --new` starts a new session, like `waymark new`.
+
 ## 0.3.3
 
 - Fix: the picker was invisible with fzf older than 0.53 (such as Ubuntu 24.04's), which draws its interface on stderr; waymark no longer captures stderr.

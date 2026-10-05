@@ -54,22 +54,22 @@ class Context:
 
 
 def cmd_menu(ctx: Context) -> int:
-    sessions = _require_sessions(ctx)
+    _require_fzf()
+    sessions = ctx.sessions()
     while True:
-        unnamed = sum(1 for s in sessions if not s.title)
-        choice = picker.pick(
-            [
+        rows = [("new", f"New session  {DIM}{ctx.permission_mode}{RESET}")]
+        if sessions:
+            unnamed = sum(1 for s in sessions if not s.title)
+            rows[:0] = [
                 ("resume", f"Resume a session  {DIM}{ctx.permission_mode}{RESET}"),
                 ("rename", f"Rename sessions  {DIM}{unnamed} of {len(sessions)} unnamed{RESET}"),
-            ],
-            header=f"{ctx.folder}\n{ctx.permission_hint}",
-        )
+            ]
+        choice = picker.pick(rows, header=f"{ctx.folder}\n{ctx.permission_hint}")
         if choice is None:
             return 0
-        if choice.value == "resume":
-            _browse(ctx, sessions, rename_mode=False)
-        else:
-            _browse(ctx, sessions, rename_mode=True)
+        if choice.value == "new":
+            cmd_new(ctx)
+        _browse(ctx, sessions, rename_mode=choice.value == "rename")
 
 
 def cmd_resume(ctx: Context) -> int:
@@ -256,12 +256,18 @@ def _preview_command(project: Path) -> str:
     return " ".join(shlex.quote(part) for part in parts) + " {1}"
 
 
-def _require_sessions(ctx: Context) -> list[Session]:
+def _require_fzf() -> None:
     if not picker.available():
         raise SystemExit("waymark: fzf is required (https://github.com/junegunn/fzf)")
+
+
+def _require_sessions(ctx: Context) -> list[Session]:
+    _require_fzf()
     sessions = ctx.sessions()
     if not sessions:
-        raise SystemExit(f"waymark: no Claude Code sessions for {ctx.folder}")
+        raise SystemExit(
+            f"waymark: no Claude Code sessions for {ctx.folder}; start one with waymark new"
+        )
     return sessions
 
 
@@ -295,6 +301,9 @@ def build_parser() -> argparse.ArgumentParser:
         description="Find, resume and name Claude Code sessions.",
         parents=[common],
     )
+    parser.add_argument(
+        "--new", action="store_true", help="start a new session (same as waymark new)"
+    )
     parser.add_argument("--version", action="version", version=f"waymark {__version__}")
     commands = parser.add_subparsers(dest="command", metavar="{resume,rename,new,suggest,stats}")
     commands.add_parser("resume", parents=[common], help="pick a session to resume")
@@ -326,7 +335,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return cmd_resume(ctx)
         if args.command == "rename":
             return cmd_rename(ctx)
-        if args.command == "new":
+        if args.command == "new" or args.new:
             return cmd_new(ctx)
         if args.command == "suggest":
             return cmd_suggest(ctx, args.session_id, args.direction)
