@@ -123,7 +123,8 @@ def test_menu_resume_skips_permissions_by_default(workspace: dict) -> None:
     term = run(workspace)
     term.expect("Runs claude with --dangerously-skip-permissions")
     term.expect("use waymark --no-perms to keep prompts")
-    term.expect("Resume a session  skipping permissions")
+    term.expect("Resume a session")  # fzf may draw a row in pieces, so match each part
+    term.expect("skipping permissions")
     term.expect("1 of 2 unnamed")
     term.send(ENTER)
     term.expect("use waymark --no-perms to keep prompts")  # repeated above the list
@@ -148,7 +149,8 @@ def test_no_perms_keeps_prompts(workspace: dict, args: tuple[str, ...]) -> None:
 def test_menu_with_no_perms_says_prompts_are_on(workspace: dict) -> None:
     term = run(workspace, "--no-perms")
     term.expect("Permission prompts on (--no-perms)")
-    term.expect("Resume a session  with permission prompts")
+    term.expect("Resume a session")
+    term.expect("with permission prompts")
     term.send(ESC)
     assert term.wait() == 0
 
