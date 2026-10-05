@@ -2,9 +2,9 @@ export type NudgePhase = 'checking' | 'idle' | 'thinking' | 'ready' | 'named' | 
 
 declare module 'claude-code' {
   interface PluginState {
-    'chat-name-nudge': {
+    'waymark-nudge': {
       phase: NudgePhase
-      /** Sonnet's candidates, most accurate first. */
+      /** Suggested titles, most accurate first. */
       names: string[]
       /** Which candidate the band shows. */
       pick: number

@@ -1,99 +1,126 @@
-# claude-chat-picker
+# waymark
 
-Find, resume and name your Claude Code chats.
+[![CI](https://github.com/FoCDoT/waymark/actions/workflows/ci.yml/badge.svg)](https://github.com/FoCDoT/waymark/actions/workflows/ci.yml)
 
-Unnamed chats are hard to find again in `claude --resume`. This repo has two small tools that fix that:
+Find, resume and name [Claude Code](https://claude.com/claude-code) sessions from the terminal.
 
-- **`claude-chat-picker`**: a terminal picker (Python + fzf). It lists the current folder's chats with a preview and lets you resume one or rename it. Claude Sonnet suggests the names.
-- **`chat-name-nudge`**: a Claude Code mod. While a chat has no name, a line above the prompt suggests one. Pressing **use** fills in `/rename <name>` for you to confirm. **It never renames a chat by itself.**
+Sessions without a title are hard to find again in `claude --resume`. waymark has two parts:
 
-Both write names the same way `/rename` does, so the names show up in `claude --resume` and everywhere else.
+- **`waymark`**, a command-line picker. It lists the sessions for the current folder with a preview. You can resume a session, or give it a title suggested by Claude from what the session covered.
+- **`waymark-nudge`**, a Claude Code mod. It shows a suggested title above the prompt while a session has none. Choosing it fills in `/rename <title>` for you to confirm. It never renames a session on its own.
+
+Titles are written exactly as `/rename` writes them, so they appear everywhere Claude Code shows session names.
 
 ## Requirements
 
-- [Claude Code](https://claude.com/claude-code), logged in. Suggestions run through `claude -p` (the picker) or the mod API (the nudge). On a Pro/Max subscription they count toward your usage limits.
-- Python 3.8+ and [fzf](https://github.com/junegunn/fzf) for the picker (`brew install fzf`)
+- Claude Code, signed in. Suggestions are made with `claude -p` and count toward your plan's usage.
+- Python 3.9 or later
+- [fzf](https://github.com/junegunn/fzf)
 
-## Install
+## Installation
 
 ```sh
-git clone https://github.com/FoCDoT/claude-chat-picker
-cd claude-chat-picker
-
-# the picker
-ln -s "$PWD/bin/claude-chat-picker" ~/.local/bin/claude-chat-picker   # any dir on your PATH
-
-# optional: your naming conventions (both tools read this)
-cp examples/chat-naming.json ~/.claude/chat-naming.json
+uv tool install git+https://github.com/FoCDoT/waymark
+# or: pipx install git+https://github.com/FoCDoT/waymark
 ```
 
-The mod, from inside Claude Code:
+To install the mod, run these inside Claude Code:
 
 ```
-/plugin marketplace add FoCDoT/claude-chat-picker
-/plugin install chat-name-nudge@claude-chat-picker
+/plugin marketplace add FoCDoT/waymark
+/plugin install waymark-nudge@waymark
+```
+
+## Usage
+
+```
+waymark                      menu: resume or rename
+waymark resume               pick a session to resume
+waymark rename               pick sessions to rename, untitled first
+waymark new                  start a new session in this folder
+waymark suggest SESSION_ID   print suggested titles without changing anything
+waymark stats                suggestion usage and recent renames
+```
+
+| Option | Effect |
+|---|---|
+| `-C`, `--dir PATH` | Use the sessions of another folder. |
+| `--skip-permissions` | Pass `--dangerously-skip-permissions` to `claude` when resuming or starting a session. |
+
+In a session list, `enter` performs the list's action, `ctrl-r` renames, `ctrl-o` resumes and `esc` goes back. When you rename, you can:
+
+- accept a suggestion, editing it first if you like,
+- ask for more suggestions,
+- give a direction such as "name the client",
+- or type your own title.
+
+After a rename you return to the list, so you can title several sessions in a row.
+
+If you always run with `--skip-permissions`, add an alias:
+
+```sh
+alias waymark='waymark --skip-permissions'
+```
+
+### The mod
+
+While a session has no title, the mod shows `Unnamed session · suggested title …` above the prompt, with `use`, `next`, `more` and `dismiss` actions. It refreshes the suggestion after turns 1, 4, 10 and 25 because sessions drift from their first topic. Run `/name-suggest` for a new suggestion at any time. The line disappears once the session has a title.
+
+## Configuration
+
+`~/.config/waymark/config.json` (or under `$XDG_CONFIG_HOME`) is read by both the CLI and the mod:
+
+```json
+{
+  "model": "claude-sonnet-5-5",
+  "default": "3-7 words, lowercase, no trailing period. Describe what the session is about.",
+  "folders": {
+    "/Users/you/code/my-app": "Start with the area ('api', 'ui', 'billing'), then the task."
+  }
+}
+```
+
+`default` is the naming rule for every session. The `folders` keys are path prefixes. The rule of the longest matching prefix is added to `default`. Every key is optional. See [`examples/config.json`](examples/config.json).
+
+## Files
+
+| Path | Purpose |
+|---|---|
+| `~/.claude/projects/<folder>/<id>.jsonl` | A `custom-title` record is appended on rename, as `/rename` does. |
+| `~/.claude/projects/<folder>/<id>/custom-title.json` | The session title, as `/rename` writes it. |
+| `~/.config/waymark/config.json` | Naming rules and model. Read only. |
+| `~/.local/state/waymark/stats.jsonl` | One line per suggestion request and rename. Mode 0600. |
+| `~/.cache/waymark/` | Cached transcript summaries. Mode 0600. |
+
+`CLAUDE_CONFIG_DIR` and the XDG variables are respected.
+
+## Security
+
+Transcript text and model output are treated as untrusted. Control characters, escape sequences, zero-width characters and bidi overrides are removed before anything is displayed or saved. Suggestion requests run with no tools, no MCP servers and no saved session, from an empty temporary directory, so the model sees only a digest of the session.
+
+## Development
+
+```sh
+uv run --with pytest --with-editable . pytest   # Python tests
+ruff check . && ruff format --check .          # lint
+claude plugin test waymark-nudge                # mod tests
+claude plugin validate ./waymark-nudge          # mod manifest and hooks
 ```
 
 ## Uninstall
 
 ```sh
-rm ~/.local/bin/claude-chat-picker
-rm -rf ~/.cache/claude-chat-picker ~/.claude/chat-naming-stats.jsonl   # optional: cache and stats
+uv tool uninstall waymark
+rm -rf ~/.config/waymark ~/.local/state/waymark ~/.cache/waymark
 ```
 
 ```
-/plugin uninstall chat-name-nudge@claude-chat-picker
-/plugin marketplace remove claude-chat-picker
+/plugin uninstall waymark-nudge@waymark
+/plugin marketplace remove waymark
 ```
 
-Names you already gave chats stay; they are ordinary `/rename` names.
-
-## Picker usage
-
-```
-claude-chat-picker              pick a chat here; resume with --dangerously-skip-permissions
-claude-chat-picker --no-perms   resume without --dangerously-skip-permissions
-claude-chat-picker --dir PATH   use another folder's chats
-claude-chat-picker --new        start a new chat here
-claude-chat-picker --stats      tokens used and chats renamed (picker + mod)
-```
-
-> **Note:** by default the picker resumes chats with `--dangerously-skip-permissions`. Use `--no-perms` (or a shell alias) if you don't want that.
-
-- **Resume**: Enter resumes the chat, Ctrl-R renames it, Esc goes back.
-- **Rename**: unnamed chats are listed first. Enter asks Sonnet for three names. You can then:
-  - pick one (and edit it before saving),
-  - ask for different names,
-  - give a direction (for example "mention the client" or "shorter"),
-  - or type your own name.
-
-  After renaming, you go back to the list, so you can rename several chats in a row. Ctrl-O opens a chat instead.
-
-## Mod usage
-
-- When a chat has no name, the line `✎ unnamed chat · try <name>` appears above the prompt. Its buttons are **use**, **next**, **more** and **dismiss**.
-- The suggestion is updated after turns 1, 4, 10 and 25, because chats drift from their first topic.
-- `/name-suggest` asks for a new suggestion straight away.
-- Once the chat is named (by `/rename` or `--name`), the line goes away.
-
-## Naming conventions
-
-`~/.claude/chat-naming.json` has a `default` rule and optional per-`folders` rules. Folder keys are path prefixes. The longest match is added to the default. See [`examples/chat-naming.json`](examples/chat-naming.json).
-
-## Files it touches
-
-| Path | What |
-|---|---|
-| `~/.claude/projects/<folder>/<id>.jsonl` | appends a `custom-title` row on rename (same as `/rename`) |
-| `~/.claude/projects/<folder>/<id>/custom-title.json` | the chat's name (same as `/rename`) |
-| `~/.claude/chat-naming.json` | your conventions (read only) |
-| `~/.claude/chat-naming-stats.jsonl` | one row per suggestion call and rename, mode 0600 |
-| `~/.cache/claude-chat-picker/` | cached transcript digests, mode 0600 |
-
-## Security
-
-Transcripts and model output are treated as untrusted. Control characters, escape sequences and bidi overrides are stripped before any text is shown or saved. Suggestions run with no tools, no MCP servers and no saved session, from an empty temp folder.
+Titles you have set stay, since they are ordinary `/rename` titles.
 
 ## License
 
-MIT
+[MIT](LICENSE)

@@ -1,0 +1,8 @@
+{
+  "model": "claude-sonnet-5-5",
+  "default": "3-7 words, lowercase except proper nouns, no trailing period, no quotes. Describe what the session is about (the deliverable or problem), not how it went. Prefer concrete nouns such as tool, product, client or file names. Avoid generic words like 'chat', 'session' or 'help with'.",
+  "folders": {
+    "/Users/you/scratch": "A scratch folder with many unrelated projects. Start with the project or tool the session is about, then the task.",
+    "/Users/you/code/my-app": "Work on my-app. Start with the area ('api', 'ui', 'billing'), then the task."
+  }
+}

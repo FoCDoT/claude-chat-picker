@@ -1,0 +1,12 @@
+{
+  "name": "waymark-nudge",
+  "version": "0.3.0",
+  "description": "Suggests a title above the prompt for unnamed Claude Code sessions. You confirm it with /rename; it never renames on its own.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "FoCDoT",
+    "url": "https://github.com/FoCDoT"
+  },
+  "homepage": "https://github.com/FoCDoT/waymark",
+  "license": "MIT"
+}

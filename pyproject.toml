@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "waymark"
+version = "0.3.0"
+description = "Find, resume and name Claude Code sessions from the terminal."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "FoCDoT" }]
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["claude", "claude-code", "cli", "fzf", "sessions"]
+classifiers = [
+    "Environment :: Console",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/FoCDoT/waymark"
+Issues = "https://github.com/FoCDoT/waymark/issues"
+
+[project.scripts]
+waymark = "waymark.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/waymark"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Typographic characters such as › and × are intentional in output.
+ignore = ["RUF001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,18 +1,18 @@
 {
-  "name": "claude-chat-picker",
+  "name": "waymark",
+  "description": "Find, resume and name Claude Code sessions",
   "owner": {
     "name": "FoCDoT",
     "url": "https://github.com/FoCDoT"
   },
   "plugins": [
     {
-      "name": "chat-name-nudge",
-      "source": "./chat-name-nudge",
-      "description": "Suggests a name for unnamed chats above the prompt; you press Enter on /rename. Never renames by itself.",
+      "name": "waymark-nudge",
+      "source": "./waymark-nudge",
+      "description": "Suggests a title above the prompt for unnamed sessions; you confirm it with /rename",
       "author": {
         "name": "FoCDoT"
       }
     }
-  ],
-  "description": "Tools for finding and naming Claude Code chats"
+  ]
 }

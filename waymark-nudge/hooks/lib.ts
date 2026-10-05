@@ -1,11 +1,13 @@
-/** Pure helpers, shared shape with bin/claude-chat-picker. */
+/** Pure helpers. They mirror waymark's Python modules (naming.py, transcripts.py) so both produce the same titles. */
 
-export const MODEL = 'claude-sonnet-5-5'
+export const DEFAULT_MODEL = 'claude-sonnet-5-5'
+export const DEFAULT_RULES = '3-7 words, lowercase, no trailing period. Say what the session is about.'
 
-/** Turns at which an unnamed chat gets a (fresh) suggestion: the chat drifts, so look again. */
+/** Turn counts at which an unnamed session gets a fresh suggestion; sessions drift from their first topic. */
 export const SUGGEST_AT = [1, 4, 10, 25]
 
-export type Conventions = { default?: string; folders?: Record<string, string> }
+/** ~/.config/waymark/config.json, shared with the waymark CLI. */
+export type Config = { model?: string; default?: string; folders?: Record<string, string> }
 
 export type Msg = { role: 'user' | 'assistant'; text: string; toolUses: { tool: string }[] }
 
@@ -14,12 +16,17 @@ export function slug(cwd: string): string {
   return cwd.replace(/[^A-Za-z0-9]/g, '-')
 }
 
-export function conventionsFor(conf: Conventions | null, folder: string): string {
-  let text = conf?.default || '3-7 words, lowercase, no trailing period. Say what the chat is about.'
+/** The default rules plus the rules of the longest folder prefix that matches. */
+export function rulesFor(conf: Config | null, folder: string): string {
+  let text = conf?.default || DEFAULT_RULES
   let best = ''
+  let bestLength = -1
   for (const prefix of Object.keys(conf?.folders ?? {})) {
     const p = prefix.replace(/\/+$/, '')
-    if ((folder === p || folder.startsWith(p + '/')) && p.length > best.length) best = prefix
+    if ((folder === p || folder.startsWith(p + '/')) && p.length > bestLength) {
+      best = prefix
+      bestLength = p.length
+    }
   }
   if (best) text += '\n' + conf!.folders![best]
   return text
@@ -60,16 +67,17 @@ export function digest(messages: readonly Msg[], folder: string): string {
   return lines.join('\n').slice(0, 9000)
 }
 
-export function namingPrompt(conventions: string, dig: string, avoid: readonly string[] = []): string {
+export function namingPrompt(rules: string, dig: string, avoid: readonly string[] = []): string {
   return (
-    'You name Claude Code chats so the person can find them later in a list.\n\n' +
-    `Naming conventions:\n${conventions}\n\n` +
-    `Chat digest:\n${dig}\n\n` +
+    'You name Claude Code sessions so the person can find them later in a list.\n\n' +
+    `Naming conventions:\n${rules}\n\n` +
+    `Session digest:\n${dig}\n\n` +
     (avoid.length ? `Do not repeat these earlier suggestions: ${avoid.join(', ')}\n\n` : '') +
-    'Give 3 different candidate names, most accurate first, one per line, nothing else: ' +
-    'no numbering, no quotes, no commentary. Base them on what the chat actually covered ' +
-    "across the WHOLE conversation, not just the end. If it covered two unrelated topics, join them with ' + ' " +
-    "(e.g. 'mx master fix + open source tool hunt'). Never use the folder's own name as the project name."
+    'Give 3 different candidate names, most accurate first, one per line, ' +
+    'with no numbering, quotes or commentary. Base them on the whole session, not just ' +
+    "the end. If it covered two unrelated topics, join them with ' + ' " +
+    "(for example 'mouse bluetooth fix + release notes'). " +
+    "Never use the folder's own name as the project name."
   )
 }
 

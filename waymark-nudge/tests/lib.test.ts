@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { conventionsFor, digest, namesSession, namingPrompt, parseNames, slug, userText } from '../hooks/lib'
+import { rulesFor, digest, namesSession, namingPrompt, parseNames, slug, userText } from '../hooks/lib'
 
-describe('chat-name-nudge helpers', () => {
+describe('waymark-nudge helpers', () => {
   test('slug matches Claude Code project folders', async () => {
     expect(slug('/Users/me/code/my-app')).toBe('-Users-me-code-my-app')
     expect(slug('/a/my project')).toBe('-a-my-project')
@@ -10,35 +10,36 @@ describe('chat-name-nudge helpers', () => {
 
   test('longest folder prefix wins and is added to the default', async () => {
     const conf = { default: 'BASE', folders: { '/w': 'W', '/w/app/': 'APP', '/w/appx': 'NO' } }
-    expect(conventionsFor(conf, '/w/app/sub')).toBe('BASE\nAPP')
-    expect(conventionsFor(conf, '/w/other')).toBe('BASE\nW')
-    expect(conventionsFor(conf, '/elsewhere')).toBe('BASE')
-    expect(conventionsFor(null, '/x')).toContain('3-7 words')
+    expect(rulesFor(conf, '/w/app/sub')).toBe('BASE\nAPP')
+    expect(rulesFor(conf, '/w/app')).toBe('BASE\nAPP')
+    expect(rulesFor(conf, '/w/other')).toBe('BASE\nW')
+    expect(rulesFor(conf, '/elsewhere')).toBe('BASE')
+    expect(rulesFor(null, '/x')).toContain('3-7 words')
   })
 
   test('userText drops harness rows and unwraps commands', async () => {
-    expect(userText('<command-name>/lavish-pages</command-name><command-args></command-args>')).toBe('/lavish-pages')
+    expect(userText('<command-name>/review</command-name><command-args>42</command-args>')).toBe('/review 42')
     expect(userText('<bash-stdout>x</bash-stdout>')).toBeNull()
     expect(userText('<system-reminder>x</system-reminder>')).toBeNull()
-    expect(userText('[Image #1] <pasted_content id="a">fix my mouse</pasted_content>')).toBe('fix my mouse')
+    expect(userText('[Image #1] <pasted_content id="a">trace</pasted_content>')).toBe('trace')
   })
 
   test('digest lists prompts, tools and replies', async () => {
     const d = digest(
       [
-        { role: 'user', text: 'my MX Master is dead', toolUses: [] },
-        { role: 'assistant', text: 'Restart BTLEServer', toolUses: [{ tool: 'Bash' }, { tool: 'Bash' }] },
+        { role: 'user', text: 'add retries to the uploader', toolUses: [] },
+        { role: 'assistant', text: 'Added exponential backoff', toolUses: [{ tool: 'Bash' }, { tool: 'Bash' }] },
       ],
       '/w/app',
     )
-    expect(d).toContain('- my MX Master is dead')
+    expect(d).toContain('- add retries to the uploader')
     expect(d).toContain('Bash×2')
-    expect(d).toContain('- Restart BTLEServer')
+    expect(d).toContain('- Added exponential backoff')
     expect(namingPrompt('C', d, ['old one'])).toContain('Do not repeat these earlier suggestions: old one')
   })
 
   test('parseNames strips numbering, quotes and periods', async () => {
-    expect(parseNames('1. "mx master fix".\n- cswap setup\n\n* mx master fix\nfour')).toEqual(['mx master fix', 'cswap setup', 'four'])
+    expect(parseNames('1. "uploader retries".\n- cache cleanup\n\n* uploader retries\nfourth')).toEqual(['uploader retries', 'cache cleanup', 'fourth'])
   })
 
   test('clean strips escapes so a name cannot inject terminal codes or newlines', async () => {
