@@ -68,10 +68,13 @@ class Terminal:
             if time.monotonic() > deadline:
                 raise AssertionError(f"{text!r} not shown; screen tail: {self.screen[-1500:]!r}")
             self._read(0.1)
-        self.screen = self.screen[self.screen.index(text) + len(text) :]
 
     def send(self, keys: str, settle: float = 0.3) -> None:
         time.sleep(settle)  # let fzf finish drawing before keys arrive
+        self._read(0)
+        # expect() looks at everything drawn since the last keystroke, in any order, because
+        # fzf does not always draw the header, rows and preview in the same sequence.
+        self.screen = ""
         os.write(self.fd, keys.encode())
 
     def wait(self, timeout: float = 15) -> int:
@@ -82,7 +85,7 @@ class Terminal:
                 return os.waitstatus_to_exitcode(status)
             self._read(0.1)
         os.kill(self.pid, 9)
-        raise AssertionError(f"waymark did not exit; screen tail:\n{self.screen[-2000:]}")
+        raise AssertionError(f"waymark did not exit; screen tail: {self.screen[-1500:]!r}")
 
 
 @pytest.fixture
@@ -123,7 +126,7 @@ def test_menu_resume_skips_permissions_by_default(workspace: dict) -> None:
     term = run(workspace)
     term.expect("Runs claude with --dangerously-skip-permissions")
     term.expect("use waymark --no-perms to keep prompts")
-    term.expect("Resume a session")  # fzf may draw a row in pieces, so match each part
+    term.expect("Resume a session")
     term.expect("skipping permissions")
     term.expect("1 of 2 unnamed")
     term.send(ENTER)
@@ -189,7 +192,7 @@ def test_rename_with_suggestion_then_resume_from_list(workspace: dict) -> None:
     term.expect("Enter to accept")
     term.send(ENTER)
     term.expect("Renamed to uploader retries")
-    term.expect("uploader retries")  # back in the list with the new title
+    term.expect("billing hooks")  # back in the list
     term.send(CTRL_O)  # resume the highlighted session
     assert term.wait() == 0
     assert launched(workspace)[-1] == NEWEST
@@ -215,6 +218,7 @@ def test_rename_with_typed_title_from_resume_list(workspace: dict) -> None:
     term.expect("Title:")
     term.send("my own title\r")
     term.expect("Renamed to my own title")
+    term.expect("billing hooks")  # wait for the list: keys sent mid-startup confuse fzf
     term.send(ESC)
     assert term.wait() == 0
     title = json.loads((workspace["project"] / NEWEST / "custom-title.json").read_text())
